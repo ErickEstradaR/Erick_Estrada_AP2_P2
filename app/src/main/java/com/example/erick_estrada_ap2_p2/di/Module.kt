@@ -36,6 +36,7 @@ object Module {
             .build()
     }
 
+
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
