@@ -15,7 +15,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object Module {
-    const val BASE_URL = ""
+    const val BASE_URL = "https://gestionhuacalesapi.azurewebsites.net/"
 
     @Provides
     @Singleton
@@ -35,6 +35,7 @@ object Module {
             .addInterceptor(loggingInterceptor)
             .build()
     }
+
 
     @Provides
     @Singleton
