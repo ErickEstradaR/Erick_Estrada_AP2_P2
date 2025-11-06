@@ -1,17 +1,23 @@
 package com.example.erick_estrada_ap2_p2.presentation
 
-sealed interface GastosUiState {
-    data class onGastoChange(val gastoId : Int)
-    data class onFechaChange(val fecha: String)
-    data class onSuplidorChange (val suplidor : String)
-    data class onNfcChange(val nfc : String)
-    data class onItbisChange(val itbis : Double)
-    data class onMontoChange(val monto: Double)
+import com.example.erick_estrada_ap2_p2.domain.model.Gastos
 
-    data object save
-    data object new
-    data object delete
-}
+data class GastosUiState (
+    val isLoading: Boolean = false,
+    val gastos: List<Gastos> = emptyList(),
+    val userMessage: String? = null,
+    val showCreateSheet: Boolean = false,
+    val gastoId : Int = 0,
+    val fecha: String = "",
+    val suplidor:String = "",
+    val nfc: String = "",
+    val itbis:Double =0.0,
+    val monto:Double = 0.0
+    ) {
+        companion object {
+            fun default() = GastosUiState()
+        }
+    }
 
 
 
