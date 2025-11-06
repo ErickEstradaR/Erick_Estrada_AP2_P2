@@ -1,14 +1,15 @@
 package com.example.erick_estrada_ap2_p2.presentation
 
-import com.example.erick_estrada_ap2_p2.domain.model.Gastos
 
-data class GastosEvent(
-    val gastoId : Int ,
-    val fecha : String,
-    val suplidor : String,
-    val nfc : String,
-    val itbis : Double,
-    val monto: Double,
-    val gastos : List<Gastos>,
-    val ErrorMessage : String
-)
+ sealed interface GastosEvent
+{
+    data class onFechaChange(val fecha: String) : GastosEvent
+    data class onSuplidorChange (val suplidor : String):GastosEvent
+    data class onNfcChange(val nfc : String):GastosEvent
+    data class onItbisChange(val itbis : Double):GastosEvent
+    data class onMontoChange(val monto: Double):GastosEvent
+
+    data object save:GastosEvent
+    data object new:GastosEvent
+    data object delete:GastosEvent
+}
