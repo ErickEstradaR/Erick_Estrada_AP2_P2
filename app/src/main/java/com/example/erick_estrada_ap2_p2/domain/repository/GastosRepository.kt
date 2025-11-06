@@ -8,5 +8,4 @@ interface GastosRepository {
     suspend fun getGastoById(gastoId: Int): Gastos?
     suspend fun saveGasto(gastos: Gastos)
     suspend fun deleteGasto(gastoId: Int)
-    fun getAllFlow (): Flow<List<Gastos>>
 }
