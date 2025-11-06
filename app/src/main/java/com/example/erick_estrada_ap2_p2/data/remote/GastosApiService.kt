@@ -8,13 +8,13 @@ import retrofit2.http.Path
 
 interface GastosApiService {
     @GET("api/Gastos")
-    suspend fun getGastos(): List<GastosApi>
+    suspend fun getGastos(): List<GastosDto>
 
     @GET("api/Gastos/{id}")
-    suspend fun getGasto(@Path("id") id: Int): GastosApi
+    suspend fun getGasto(@Path("id") id: Int): GastosDto
 
     @POST("api/Gastos")
-    suspend fun saveGasto(@Body gasto : GastosApi) : GastosApi
+    suspend fun saveGasto(@Body gasto : GastosDto) : GastosDto
 
     @DELETE("api/Gastos/{id}")
     suspend fun deleteGasto(@Path("id") id: Int?)
