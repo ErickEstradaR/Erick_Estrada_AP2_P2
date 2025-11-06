@@ -1,7 +1,16 @@
 package com.example.erick_estrada_ap2_p2.di
 
+import com.example.erick_estrada_ap2_p2.data.remote.GastosApiService
+import com.example.erick_estrada_ap2_p2.data.repository.GastosRepositoryImpl
+import com.example.erick_estrada_ap2_p2.domain.repository.GastosRepository
+import com.example.erick_estrada_ap2_p2.domain.useCases.GastosUseCases
+import com.example.erick_estrada_ap2_p2.domain.useCases.deleteGastoUseCase
+import com.example.erick_estrada_ap2_p2.domain.useCases.getGastoUseCase
+import com.example.erick_estrada_ap2_p2.domain.useCases.getGastosUseCase
+import com.example.erick_estrada_ap2_p2.domain.useCases.saveGastoUseCase
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -47,4 +56,35 @@ object Module {
             .build()
     }
 
-}
+    @Provides
+    @Singleton
+    fun provideGastosApiService(moshi: Moshi): GastosApiService {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(GastosApiService::class.java)
+    }
+
+    @Provides
+    fun provideGastoUseCases(repository: GastosRepository): GastosUseCases {
+        return GastosUseCases(
+            save = saveGastoUseCase(repository),
+            delete = deleteGastoUseCase(repository),
+            obtenerGastos =getGastosUseCase(repository),
+            obtenerGastoPorId= getGastoUseCase(repository)
+        )
+    }
+
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+
+    abstract class RepositoryModule {
+
+        @Binds
+        @Singleton
+        abstract fun bindGastoRepository(
+            impl: GastosRepositoryImpl
+        ): GastosRepository
+}}
