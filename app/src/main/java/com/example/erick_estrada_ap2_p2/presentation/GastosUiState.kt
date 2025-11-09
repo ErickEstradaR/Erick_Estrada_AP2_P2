@@ -9,8 +9,8 @@ data class GastosUiState (
     val showCreateSheet: Boolean = false,
     val gastoId : Int = 0,
     val fecha: String = "",
-    val suplidor:String = "",
-    val nfc: String = "",
+    val suplidor:String? = "",
+    val ncf: String? = "",
     val itbis:Double =0.0,
     val monto:Double = 0.0
     )
