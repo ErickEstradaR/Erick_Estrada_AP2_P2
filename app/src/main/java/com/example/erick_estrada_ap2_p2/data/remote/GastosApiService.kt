@@ -14,7 +14,7 @@ interface GastosApiService {
     suspend fun getGastos(): Response<List<GastoResponse>>
 
     @GET("api/Gastos/{id}")
-    suspend fun getGasto(@Path("id") id: Int): GastoResponse
+    suspend fun getGasto(@Path("id") id: Int?): GastoResponse
 
     @POST("api/Gastos")
     suspend fun postGasto(@Body gasto: GastoRequest): Response<GastoResponse>
