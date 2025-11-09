@@ -1,7 +1,7 @@
 package com.example.erick_estrada_ap2_p2.domain.model
 
 data class Gasto (
-    val gastoId : Int,
+    val gastoId : Int? = null,
     val fecha : String,
     val suplidor : String?,
     val ncf : String?,
