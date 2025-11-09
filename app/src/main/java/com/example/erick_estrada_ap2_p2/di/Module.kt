@@ -4,7 +4,6 @@ import com.example.erick_estrada_ap2_p2.data.remote.GastosApiService
 import com.example.erick_estrada_ap2_p2.data.repository.GastosRepositoryImpl
 import com.example.erick_estrada_ap2_p2.domain.repository.GastosRepository
 import com.example.erick_estrada_ap2_p2.domain.useCases.GastosUseCases
-import com.example.erick_estrada_ap2_p2.domain.useCases.deleteGastoUseCase
 import com.example.erick_estrada_ap2_p2.domain.useCases.getGastoUseCase
 import com.example.erick_estrada_ap2_p2.domain.useCases.getGastosUseCase
 import com.example.erick_estrada_ap2_p2.domain.useCases.saveGastoUseCase
@@ -70,7 +69,6 @@ object Module {
     fun provideGastoUseCases(repository: GastosRepository): GastosUseCases {
         return GastosUseCases(
             save = saveGastoUseCase(repository),
-            delete = deleteGastoUseCase(repository),
             obtenerGastos =getGastosUseCase(repository),
             obtenerGastoPorId= getGastoUseCase(repository)
         )
