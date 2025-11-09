@@ -1,49 +1,64 @@
 package com.example.erick_estrada_ap2_p2.data.repository
 
-import com.example.erick_estrada_ap2_p2.data.remote.GastosApiService
+import com.example.erick_estrada_ap2_p2.data.Resource
+import com.example.erick_estrada_ap2_p2.data.remote.RemoteDataSource
+import com.example.erick_estrada_ap2_p2.data.remote.dto.GastoRequest
 import com.example.erick_estrada_ap2_p2.data.toDomain
-import com.example.erick_estrada_ap2_p2.data.toDto
-import com.example.erick_estrada_ap2_p2.domain.model.Gastos
+import com.example.erick_estrada_ap2_p2.domain.model.Gasto
 import com.example.erick_estrada_ap2_p2.domain.repository.GastosRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class GastosRepositoryImpl  @Inject constructor(
-    private val api: GastosApiService
-) : GastosRepository {
-    override suspend fun getAllGastos(): List<Gastos> {
-        return api.getGastos().map { it.toDomain() }
-    }
+class GastosRepositoryImpl @Inject constructor(
+    private val remoteDataSource: RemoteDataSource
+): GastosRepository {
 
-    override suspend fun getGastoById(gastoId: Int): Gastos? {
-        val gasto = try {
-            api.getGasto(gastoId)
-        } catch (e: Exception) {
-            null
-        }
-        return gasto?.toDomain()
-    }
+    override fun getGastos(): Flow<Resource<List<Gasto>>> = flow {
 
-    override suspend fun saveGasto(gastos: Gastos) {
-        api.saveGasto(gastos.toDto())
-    }
+        emit(Resource.Loading())
 
-    override suspend fun deleteGasto(gastoId: Int) {
-    return try {
-        api.deleteGasto(gastoId)
-    }
-    catch (e: Exception){
-      }
-    }
-
-    override fun getAllFlow(): Flow<List<Gastos>> = flow {
-        try {
-            val tecnicosApi = api.getGastos()
-            emit(tecnicosApi.map { it.toDomain() })
-        } catch (e: Exception) {
-            emit(emptyList())
+        when (val resource = remoteDataSource.getGastos()) {
+            is Resource.Success -> {
+                val gastos = resource.data?.map { dto -> dto.toDomain() } ?: emptyList()
+                emit(Resource.Success(gastos))
+            }
+            is Resource.Error -> {
+                emit(Resource.Error(resource.message ?: "Error desconocido"))
+            }
+            is Resource.Loading -> {}
         }
     }
 
+    override fun getGasto(id: Int): Flow<Resource<Gasto>> = flow {
+        emit(Resource.Loading())
+
+        when (val resource = remoteDataSource.getGasto(id)) {
+            is Resource.Success -> {
+                val dto = resource.data
+                if (dto != null) {
+                    val gasto = dto.toDomain()
+                    emit(Resource.Success(gasto))
+                } else {
+                    emit(Resource.Error("Respuesta exitosa pero con datos nulos"))
+                }
+            }
+            is Resource.Error -> {
+                emit(Resource.Error(resource.message ?: "Error desconocido"))
+            }
+            is Resource.Loading -> {}
+        }
+    }
+
+    override suspend fun postGasto(req: GastoRequest): Resource<Unit> {
+        return when (val resource = remoteDataSource.save(req)) {
+            is Resource.Success -> Resource.Success(Unit)
+            is Resource.Error -> Resource.Error(resource.message)
+            is Resource.Loading -> Resource.Loading()
+        }
+    }
+
+    override suspend fun putGasto(id: Int, req: GastoRequest): Resource<Unit> {
+        return remoteDataSource.update(id, req)
+    }
 }
