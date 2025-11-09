@@ -14,7 +14,11 @@ data class GastosUiState (
     val suplidor:String? = "",
     val ncf: String? = "",
     val itbis:Double =0.0,
-    val monto:Double = 0.0
+    val monto:Double = 0.0,
+
+    val fechaError: String? = null,
+    val itbisError: String? = null,
+    val montoError: String? = null
     )
 
 
