@@ -1,7 +1,7 @@
 package com.example.erick_estrada_ap2_p2.data.remote.dto
 
 class GastoResponse (
-    val gastoId : Int,
+    val gastoId : Int? = null,
     val fecha : String,
     val suplidor : String? ,
     val ncf : String?,
