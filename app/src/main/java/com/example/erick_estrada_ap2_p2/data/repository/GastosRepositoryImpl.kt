@@ -30,7 +30,7 @@ class GastosRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getGasto(id: Int): Flow<Resource<Gasto>> = flow {
+    override fun getGasto(id: Int?): Flow<Resource<Gasto>> = flow {
         emit(Resource.Loading())
 
         when (val resource = remoteDataSource.getGasto(id)) {
