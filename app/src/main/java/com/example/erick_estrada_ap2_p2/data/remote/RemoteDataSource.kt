@@ -40,7 +40,7 @@ class RemoteDataSource @Inject constructor(
         }
     }
 
-    suspend fun getGasto(id: Int): Resource<GastoResponse> {
+    suspend fun getGasto(id: Int?): Resource<GastoResponse> {
         return try {
             val response = api.getGasto(id)
             Resource.Success(response)
