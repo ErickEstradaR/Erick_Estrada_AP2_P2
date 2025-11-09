@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 interface GastosRepository {
 
     fun getGastos(): Flow<Resource<List<Gasto>>>
-    fun getGasto(id: Int): Flow<Resource<Gasto>>
+    fun getGasto(id: Int?): Flow<Resource<Gasto>>
     suspend fun postGasto(req: GastoRequest): Resource<Unit>
     suspend fun putGasto(id: Int, req: GastoRequest): Resource<Unit>
 }
