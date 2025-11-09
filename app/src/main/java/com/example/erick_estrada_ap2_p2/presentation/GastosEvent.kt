@@ -5,15 +5,16 @@ package com.example.erick_estrada_ap2_p2.presentation
 {
     data class onFechaChange(val fecha: String) : GastosEvent
     data class onSuplidorChange (val suplidor : String):GastosEvent
-    data class onNfcChange(val nfc : String):GastosEvent
+    data class onNcfChange(val ncf : String):GastosEvent
     data class onItbisChange(val itbis : Double):GastosEvent
     data class onMontoChange(val monto: Double):GastosEvent
-    data class delete(val gastoId: Int) : GastosEvent
+
 
     object ShowCreateSheet : GastosEvent
     object HideCreateSheet : GastosEvent
 
-    data object save:GastosEvent
+    data object crear:GastosEvent
+    data object actualizar:GastosEvent
     data object new:GastosEvent
 
 }
