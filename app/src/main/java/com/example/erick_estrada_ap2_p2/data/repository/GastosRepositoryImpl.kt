@@ -5,6 +5,8 @@ import com.example.erick_estrada_ap2_p2.data.toDomain
 import com.example.erick_estrada_ap2_p2.data.toDto
 import com.example.erick_estrada_ap2_p2.domain.model.Gastos
 import com.example.erick_estrada_ap2_p2.domain.repository.GastosRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class GastosRepositoryImpl  @Inject constructor(
@@ -34,4 +36,14 @@ class GastosRepositoryImpl  @Inject constructor(
     catch (e: Exception){
       }
     }
+
+    override fun getAllFlow(): Flow<List<Gastos>> = flow {
+        try {
+            val tecnicosApi = api.getGastos()
+            emit(tecnicosApi.map { it.toDomain() })
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }
+
 }
