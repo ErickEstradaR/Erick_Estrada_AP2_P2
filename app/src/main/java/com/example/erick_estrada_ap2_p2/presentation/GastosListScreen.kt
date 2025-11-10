@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -228,3 +229,26 @@ private fun CreateGastoSheet(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun GastoItemPreview() {
+    MaterialTheme {
+        Surface(modifier = Modifier.padding(8.dp)) {
+            GastoItem(
+                gasto = gastoFalso,
+                onClick = {}
+            )
+        }
+    }
+}
+
+val gastoFalso = Gasto(
+    gastoId = 1,
+    fecha = "2025-11-09",
+    suplidor = "Supermercado Bravo",
+    ncf = "B0100000123",
+    itbis = 360.0,
+    monto = 2000.0
+)
+
