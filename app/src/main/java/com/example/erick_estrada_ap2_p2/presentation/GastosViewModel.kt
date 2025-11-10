@@ -53,7 +53,6 @@ class GastoViewModel @Inject constructor(
         }
     }
 
-
     fun onEvent(event: GastosEvent) {
         when (event) {
             is GastosEvent.crear -> validarYGuardar(event.gasto,true)
@@ -112,7 +111,6 @@ class GastoViewModel @Inject constructor(
             updateGasto(gasto)
         }
     }
-
 
     private fun crearGasto(gasto: Gasto) {
         viewModelScope.launch {
@@ -201,9 +199,6 @@ class GastoViewModel @Inject constructor(
             }
         }
     }
-
-
-
 
     private fun clearForm() {
         _state.update {
