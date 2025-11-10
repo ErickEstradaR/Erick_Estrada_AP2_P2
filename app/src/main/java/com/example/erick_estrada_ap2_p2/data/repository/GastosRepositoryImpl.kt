@@ -49,7 +49,7 @@ class GastosRepositoryImpl @Inject constructor(
             is Resource.Loading -> {}
         }
     }
-
+    
     override suspend fun postGasto(req: GastoRequest): Resource<Unit> {
         return when (val resource = remoteDataSource.save(req)) {
             is Resource.Success -> Resource.Success(Unit)
@@ -59,6 +59,10 @@ class GastosRepositoryImpl @Inject constructor(
     }
 
     override suspend fun putGasto(id: Int, req: GastoRequest): Resource<Unit> {
-        return remoteDataSource.update(id, req)
+        return  when (val resource =remoteDataSource.update(id, req)){
+            is Resource.Success -> Resource.Success(Unit)
+            is Resource.Error -> Resource.Error(resource.message)
+            is Resource.Loading -> Resource.Loading()
+        }
     }
 }
