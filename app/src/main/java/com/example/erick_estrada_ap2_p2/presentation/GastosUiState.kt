@@ -1,6 +1,5 @@
 package com.example.erick_estrada_ap2_p2.presentation
 
-import com.example.erick_estrada_ap2_p2.data.Resource
 import com.example.erick_estrada_ap2_p2.domain.model.Gasto
 
 data class GastosUiState (
