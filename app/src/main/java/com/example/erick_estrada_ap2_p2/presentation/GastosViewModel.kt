@@ -1,5 +1,6 @@
 package com.example.erick_estrada_ap2_p2.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.erick_estrada_ap2_p2.data.Resource
@@ -52,10 +53,11 @@ class GastoViewModel @Inject constructor(
         }
     }
 
+
     fun onEvent(event: GastosEvent) {
         when (event) {
-            is GastosEvent.crear -> crearGasto(event.gasto)
-            is GastosEvent.actualizar -> updateGasto(event.gasto)
+            is GastosEvent.crear -> validarYGuardar(event.gasto,true)
+            is GastosEvent.actualizar -> validarYGuardar(event.gasto,false)
             is GastosEvent.obtener -> getGasto(event.id)
             is GastosEvent.cargar -> obtenerGastos()
             is GastosEvent.showCreateSheet -> {
@@ -87,6 +89,31 @@ class GastoViewModel @Inject constructor(
         }
     }
 
+    private fun validarYGuardar(gasto: Gasto, esNuevo: Boolean) {
+
+        val montoError = if (gasto.monto <= 0.0) "El monto debe ser > 0" else null
+        val fechaError = if (gasto.fecha.isBlank()) "La fecha es requerida" else null
+        val itbisError = if (gasto.itbis < 0.0) "El ITBIS no puede ser negativo" else null
+
+
+        _state.update { it.copy(
+            montoError = montoError,
+            fechaError = fechaError,
+            itbisError = itbisError,
+        )}
+
+        if (montoError != null || fechaError != null || itbisError != null) {
+            return
+        }
+
+        if (esNuevo) {
+            crearGasto(gasto)
+        } else {
+            updateGasto(gasto)
+        }
+    }
+
+
     private fun crearGasto(gasto: Gasto) {
         viewModelScope.launch {
             val gastoReq = GastoRequest(
@@ -96,8 +123,9 @@ class GastoViewModel @Inject constructor(
                 itbis = gasto.itbis,
                 monto = gasto.monto
             )
+            val result = useCases.save(id = null, gastoReq)
 
-            when (useCases.save(id = null, gastoReq)) {
+            when (result) {
                 is Resource.Success -> {
                     _state.update {
                         it.copy(
@@ -109,16 +137,16 @@ class GastoViewModel @Inject constructor(
                     obtenerGastos()
                 }
                 is Resource.Error -> {
+                    Log.e("GastoViewModel", "Resultado: Resource.Error - Mensaje: ${result.message}")
                     _state.update {
                         it.copy(userMessage = "Error al crear el gasto")
                     }
                 }
-                else -> {}
+                else -> {
+                }
             }
         }
     }
-
-
     private fun updateGasto(gasto: Gasto) {
         viewModelScope.launch {
             val gastoReq = GastoRequest(
