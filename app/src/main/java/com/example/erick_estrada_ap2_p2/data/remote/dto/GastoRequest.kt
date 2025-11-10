@@ -1,6 +1,6 @@
 package com.example.erick_estrada_ap2_p2.data.remote.dto
 
-class GastoRequest (
+data class GastoRequest (
     val fecha : String,
     val suplidor : String?,
     val ncf : String?,
