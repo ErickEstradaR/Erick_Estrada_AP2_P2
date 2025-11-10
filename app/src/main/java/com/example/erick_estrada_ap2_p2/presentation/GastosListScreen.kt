@@ -1,185 +1,103 @@
-package com.example.erick_estrada_ap2_p2.presentation
-
-import com.example.erick_estrada_ap2_p2.domain.model.Gastos
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-
-@Composable
-fun GastosScreen(
-    viewModel: GastosViewModel = hiltViewModel()
-) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    GastosListBody(state, viewModel::onEvent)
-}
+import com.example.erick_estrada_ap2_p2.domain.model.Gasto
+import com.example.erick_estrada_ap2_p2.presentation.GastoViewModel
+import com.example.erick_estrada_ap2_p2.presentation.GastosEvent
+import com.example.erick_estrada_ap2_p2.presentation.GastosUiState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GastosListBody(
-    state: GastosUiState,
-    onEvent: (GastosEvent) -> Unit
+fun GastosScreen(
+    viewModel: GastoViewModel = hiltViewModel()
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(state.userMessage) {
         state.userMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.onEvent(GastosEvent.userMessageShown)
+            }
         }
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onEvent(GastosEvent.ShowCreateSheet) },
-                modifier = Modifier.testTag("fab_add_gasto")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Gasto"
+        topBar = {
+            TopAppBar(
+                title = { Text("Gastos") },
                 )
+
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { viewModel.onEvent(GastosEvent.new) }) {
+                Icon(Icons.Default.Add, contentDescription = "Nuevo Gasto")
             }
         }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .testTag("loading_gastos")
-                )
-            } else {
-                if (state.gastos.isEmpty()) {
-                    Text(
-                        text = "No hay Gastos registrados",
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .testTag("empty_message_gastos"),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(
-                            items = state.gastos,
-                            key = { it.gastoId }
-                        ) { gasto ->
-                            GastoItem(
-                                gasto = gasto,
-                                onDelete = {
-                                    onEvent(GastosEvent.delete(gasto.gastoId)) // Envía el evento de borrado con ID
-                                }
-                            )
-                        }
-                    }
-                }
+
+        GastosContent(
+            modifier = Modifier.padding(padding),
+            isLoading = state.isLoading,
+            gastos = state.gastos,
+            onGastoClick = { gasto ->
+                viewModel.onEvent(GastosEvent.obtener(gasto.gastoId))
+                viewModel.onEvent(GastosEvent.showCreateSheet)
             }
-        }
+        )
 
         if (state.showCreateSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { onEvent(GastosEvent.HideCreateSheet) },
-                sheetState = sheetState
+            CreateGastoSheet(
+                state = state,
+                onDismiss = { viewModel.onEvent(GastosEvent.hideCreateSheet) },
+                onEvent = viewModel::onEvent
+            )
+        }
+    }
+}
+
+@Composable
+private fun GastosContent(
+    modifier: Modifier = Modifier,
+    isLoading: Boolean,
+    gastos: List<Gasto>,
+    onGastoClick: (Gasto) -> Unit
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator()
+        } else if (gastos.isEmpty()) {
+            Text("No hay gastos registrados.")
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .navigationBarsPadding()
-                        .imePadding(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        text = if (state.gastoId > 0) "Editar Gasto" else "Nuevo Gasto",
-                        style = MaterialTheme.typography.headlineSmall
+                items(gastos, key = { it.gastoId!! }) { gasto ->
+                    GastoItem(
+                        gasto = gasto,
+                        onClick = { onGastoClick(gasto) }
                     )
-
-                    OutlinedTextField(
-                        value = state.fecha,
-                        onValueChange = { onEvent(GastosEvent.onFechaChange(it)) },
-                        label = { Text("Fecha (ej: YYYY-MM-DD)") },
-                        modifier = Modifier.fillMaxWidth().testTag("input_fecha"),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = state.suplidor,
-                        onValueChange = { onEvent(GastosEvent.onSuplidorChange(it)) },
-                        label = { Text("Suplidor") },
-                        modifier = Modifier.fillMaxWidth().testTag("input_suplidor"),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = state.nfc,
-                        onValueChange = { onEvent(GastosEvent.onNfcChange(it)) },
-                        label = { Text("NFC") },
-                        modifier = Modifier.fillMaxWidth().testTag("input_nfc"),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = state.itbis.toString(),
-                        onValueChange = { onEvent(GastosEvent.onItbisChange(it.toDoubleOrNull() ?: 0.0)) },
-                        label = { Text("ITBIS") },
-                        modifier = Modifier.fillMaxWidth().testTag("input_itbis"),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = state.monto.toString(),
-                        onValueChange = { onEvent(GastosEvent.onMontoChange(it.toDoubleOrNull() ?: 0.0)) },
-                        label = { Text("Monto") },
-                        modifier = Modifier.fillMaxWidth().testTag("input_monto"),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { onEvent(GastosEvent.HideCreateSheet) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Cancelar")
-                        }
-
-                        Button(
-                            onClick = { onEvent(GastosEvent.save) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("btn_save_gasto"),
-                            // Validación para habilitar el botón
-                            enabled = state.suplidor.isNotBlank() && state.fecha.isNotBlank() && state.monto > 0
-                        ) {
-                            Text("Guardar")
-                        }
-                    }
                 }
             }
         }
@@ -187,81 +105,126 @@ fun GastosListBody(
 }
 
 @Composable
-fun GastoItem(
-    gasto: Gastos,
-    onDelete: () -> Unit
+private fun GastoItem(
+    gasto: Gasto,
+    onClick: () -> Unit
 ) {
-    ElevatedCard(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("gasto_item_${gasto.gastoId}")
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = gasto.suplidor,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                Text(
-                    text = "Monto: $${gasto.monto}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(
-                    text = "Fecha: ${gasto.fecha}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
+        ListItem(
+            headlineContent = { Text(gasto.suplidor.toString(), style = MaterialTheme.typography.titleMedium) },
+            supportingContent = { Text("NCF: ${gasto.ncf} - Fecha: ${gasto.fecha}") },
+            trailingContent = {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Monto $${gasto.monto}",
+                    )
+                    Text(
+                        text = "ITBIS $${gasto.itbis}",
+                    )
+                }
             }
-
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.testTag("btn_delete_${gasto.gastoId}")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar Gasto"
-                )
-            }
-        }
+        )
     }
 }
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GastoListBodyPreview() {
-    MaterialTheme {
-        val state = GastosUiState(
-            isLoading = false,
-            gastos = listOf(
-                Gastos(
-                    gastoId = 1,
-                    fecha = "2023-10-27",
-                    suplidor = "Ferretería Ochoa",
-                    nfc = "B01000881",
-                    itbis = 180.0,
-                    monto = 1000.0
-                ),
-                Gastos(
-                    gastoId = 2,
-                    fecha = "2023-10-28",
-                    suplidor = "Supermercado Bravo",
-                    nfc = "B01000992",
-                    itbis = 360.0,
-                    monto = 2000.0
-                )
+private fun CreateGastoSheet(
+    state: GastosUiState,
+    onDismiss: () -> Unit,
+    onEvent: (GastosEvent) -> Unit
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                 text = if (state.gastoId == null) "Nuevo Gasto" else "Editar Gasto",
+                style = MaterialTheme.typography.headlineSmall
             )
-        )
-        GastosListBody(state) {}
+
+            OutlinedTextField(
+                value = state.fecha,
+                onValueChange = { onEvent(GastosEvent.onFechaChange(it)) },
+                label = { Text("Fecha (YYYY-MM-DD)") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.fechaError != null,
+                supportingText = {
+                    if (state.fechaError != null) {
+                        Text(text = state.fechaError)
+                    }
+                }
+
+            )
+            OutlinedTextField(
+                value = state.suplidor.toString(),
+                onValueChange = { onEvent(GastosEvent.onSuplidorChange(it)) },
+                label = { Text("Suplidor") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = state.ncf.toString(),
+                onValueChange = { onEvent(GastosEvent.onNcfChange(it)) },
+                label = { Text("NCF") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = state.itbis.toString(),
+                onValueChange = { onEvent(GastosEvent.onItbisChange(it.toDoubleOrNull() ?: 0.0)) },
+                label = { Text("ITBIS") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.itbisError != null,
+                supportingText = {
+                    if (state.itbisError != null) {
+                        Text(text = state.itbisError)
+                    }
+                }
+            )
+            OutlinedTextField(
+                value = state.monto.toString(),
+                onValueChange = { onEvent(GastosEvent.onMontoChange(it.toDoubleOrNull() ?: 0.0)) },
+                label = { Text("Monto") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                isError = state.montoError != null,
+                supportingText = {
+                    if (state.montoError != null) {
+                        Text(text = state.montoError)
+                    }
+                }
+            )
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                     val gasto = Gasto(
+                        gastoId = state.gastoId ?: 0,
+                        fecha = state.fecha,
+                        suplidor = state.suplidor,
+                        ncf = state.ncf,
+                        itbis = state.itbis,
+                        monto = state.monto
+                    )
+                    if (state.gastoId == null) {
+                        onEvent(GastosEvent.crear(gasto))
+                    } else {
+                        onEvent(GastosEvent.actualizar(gasto))
+                    }
+                }
+            ) {
+                Text("Guardar")
+            }
+        }
     }
 }
